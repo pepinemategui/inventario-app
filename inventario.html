@@ -19,7 +19,7 @@
   <input id="codigo" placeholder="Código del artículo" />
   <input id="descripcion" placeholder="Descripción" disabled />
   <input id="lote" placeholder="Lote" />
-  <input id="cantidad" type="number" step="0.01" placeholder="Cantidad" />
+  <input id="cantidad" type="number" inputmode="decimal" step="0.01" placeholder="Cantidad" />
   <button onclick="guardar()">Guardar</button>
 
   <h3>🕒 Últimos 10 registros</h3>
@@ -29,7 +29,7 @@
   </table>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycby2w6_6wPhzIjZ-4Tohmmr_PkjpGp6EwwQGK1rT4onwfKo4n4ByWyT2e-7Y-mpF9dHp2Q/exec'; // ← reemplaza con tu URL
+    const API_URL = 'https://script.google.com/macros/s/AKfycby2w6_6wPhzIjZ-4Tohmmr_PkjpGp6EwwQGK1rT4onwfKo4n4ByWyT2e-7Y-mpF9dHp2Q/exec';
 
     async function cargarAlmacenes() {
       const res = await fetch(`${API_URL}?action=almacenes`);
@@ -44,10 +44,20 @@
       });
     }
 
-    // Convierte el texto ingresado en "codigo" a mayúsculas en cada input
+    // Convierte automáticamente el texto ingresado a MAYÚSCULAS en los campos usuario, codigo y lote
+    document.getElementById('usuario').addEventListener('input', () => {
+      const usuarioInput = document.getElementById('usuario');
+      usuarioInput.value = usuarioInput.value.toUpperCase();
+    });
+
     document.getElementById('codigo').addEventListener('input', () => {
       const codigoInput = document.getElementById('codigo');
       codigoInput.value = codigoInput.value.toUpperCase();
+    });
+
+    document.getElementById('lote').addEventListener('input', () => {
+      const loteInput = document.getElementById('lote');
+      loteInput.value = loteInput.value.toUpperCase();
     });
 
     document.getElementById('codigo').addEventListener('change', async () => {
@@ -57,11 +67,27 @@
       document.getElementById('descripcion').value = data.descripcion || 'No encontrado';
     });
 
+    // Verifica que el código exista en la tabla artículos
+    async function codigoExiste(codigo) {
+      const res = await fetch(`${API_URL}?action=descripcion&codigo=${codigo}`);
+      const data = await res.json();
+      return !!(data && data.descripcion && data.descripcion !== 'No encontrado');
+    }
+
     async function guardar() {
+      const codigo = document.getElementById('codigo').value;
+
+      // Verifica si el código existe antes de guardar
+      if (!(await codigoExiste(codigo))) {
+        alert('El código no existe en la tabla artículos.');
+        document.getElementById('codigo').focus();
+        return;
+      }
+
       const payload = {
         usuario: document.getElementById('usuario').value,
         almacen: document.getElementById('almacen').value,
-        codigo: document.getElementById('codigo').value,
+        codigo: codigo,
         descripcion: document.getElementById('descripcion').value,
         lote: document.getElementById('lote').value,
         cantidad: parseFloat(document.getElementById('cantidad').value),
@@ -71,6 +97,15 @@
         body: JSON.stringify(payload),
       });
       cargarUltimos();
+
+      // Limpiar los campos de código, lote y cantidad
+      document.getElementById('codigo').value = "";
+      document.getElementById('lote').value = "";
+      document.getElementById('cantidad').value = "";
+      document.getElementById('descripcion').value = "";
+
+      // Posicionar el cursor en el campo código
+      document.getElementById('codigo').focus();
     }
 
     async function cargarUltimos() {
