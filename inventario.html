@@ -44,6 +44,12 @@
       });
     }
 
+    // Convierte el texto ingresado en "codigo" a mayúsculas en cada input
+    document.getElementById('codigo').addEventListener('input', () => {
+      const codigoInput = document.getElementById('codigo');
+      codigoInput.value = codigoInput.value.toUpperCase();
+    });
+
     document.getElementById('codigo').addEventListener('change', async () => {
       const codigo = document.getElementById('codigo').value;
       const res = await fetch(`${API_URL}?action=descripcion&codigo=${codigo}`);
