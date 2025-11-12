@@ -1,93 +1,72 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inventario Móvil</title>
-  <style>
-    body { font-family: sans-serif; padding: 1em; max-width: 500px; margin: auto; }
-    input, select, button { width: 100%; margin: 0.5em 0; font-size: 1.2em; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
-    th, td { border: 1px solid #ccc; padding: 0.5em; text-align: center; }
-    button.delete { background: red; color: white; border: none; padding: 0.3em 0.6em; }
-  </style>
-</head>
-<body>
-  <h2>📦 Registro de Inventario</h2>
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycby2w6_6wPhzIjZ-4Tohmmr_PkjpGp6EwwQGK1rT4onwfKo4n4ByWyT2e-7Y-mpF9dHp2Q/exec'; // ← reemplaza con tu URL
 
-  <input id="usuario" placeholder="Usuario" />
-  <select id="almacen"></select>
-  <input id="codigo" placeholder="Código del artículo" />
-  <input id="descripcion" placeholder="Descripción" disabled />
-  <input id="lote" placeholder="Lote" />
-  <input id="cantidad" type="number" step="0.01" placeholder="Cantidad" />
-  <button onclick="guardar()">Guardar</button>
-
-  <h3>🕒 Últimos 10 registros</h3>
-  <table id="tabla">
-    <thead><tr><th>Código</th><th>Lote</th><th>Cantidad</th><th>Eliminar</th></tr></thead>
-    <tbody></tbody>
-  </table>
-
-  <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycby2w6_6wPhzIjZ-4Tohmmr_PkjpGp6EwwQGK1rT4onwfKo4n4ByWyT2e-7Y-mpF9dHp2Q/exec'; // ← reemplaza con tu URL
-
-    async function cargarAlmacenes() {
-      const res = await fetch(`${API_URL}?action=almacenes`);
-      const data = await res.json();
-      const sel = document.getElementById('almacen');
-      sel.innerHTML = '';
-      data.forEach(a => {
-        const opt = document.createElement('option');
-        opt.value = a;
-        opt.textContent = a;
-        sel.appendChild(opt);
-      });
-    }
-
-    document.getElementById('codigo').addEventListener('change', async () => {
-      const codigo = document.getElementById('codigo').value;
-      const res = await fetch(`${API_URL}?action=descripcion&codigo=${codigo}`);
-      const data = await res.json();
-      document.getElementById('descripcion').value = data.descripcion || 'No encontrado';
+  async function cargarAlmacenes() {
+    const res = await fetch(`${API_URL}?action=almacenes`);
+    const data = await res.json();
+    const sel = document.getElementById('almacen');
+    sel.innerHTML = '';
+    data.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a;
+      opt.textContent = a;
+      sel.appendChild(opt);
     });
+  }
 
-    async function guardar() {
-      const payload = {
-        usuario: document.getElementById('usuario').value,
-        almacen: document.getElementById('almacen').value,
-        codigo: document.getElementById('codigo').value,
-        descripcion: document.getElementById('descripcion').value,
-        lote: document.getElementById('lote').value,
-        cantidad: parseFloat(document.getElementById('cantidad').value),
-      };
-      await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-      cargarUltimos();
-    }
+  // Transformar automáticamente el campo a mayúsculas
+  document.getElementById('codigo').addEventListener('input', function(e) {
+    this.value = this.value.toUpperCase();
+  });
 
-    async function cargarUltimos() {
-      const usuario = document.getElementById('usuario').value;
-      if (!usuario) return;
-      const res = await fetch(`${API_URL}?action=ultimos&usuario=${usuario}`);
-      const data = await res.json();
-      const tbody = document.querySelector('#tabla tbody');
-      tbody.innerHTML = '';
-      data.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${r.codigo}</td><td>${r.lote}</td><td>${r.cantidad}</td>
-          <td><button class="delete" onclick="eliminar(${r.id})">X</button></td>`;
-        tbody.appendChild(tr);
-      });
-    }
+  document.getElementById('codigo').addEventListener('change', async () => {
+    const codigo = document.getElementById('codigo').value;
+    const res = await fetch(`${API_URL}?action=descripcion&codigo=${codigo}`);
+    const data = await res.json();
+    document.getElementById('descripcion').value = data.descripcion || 'No encontrado';
+  });
 
-    async function eliminar(id) {
-      await fetch(`${API_URL}?action=eliminar&id=${id}`);
-      cargarUltimos();
-    }
+  async function guardar() {
+    const payload = {
+      usuario: document.getElementById('usuario').value,
+      almacen: document.getElementById('almacen').value,
+      codigo: document.getElementById('codigo').value,
+      descripcion: document.getElementById('descripcion').value,
+      lote: document.getElementById('lote').value,
+      cantidad: parseFloat(document.getElementById('cantidad').value),
+    };
+    await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    alert("Registro guardado con éxito");
+    document.getElementById('codigo').value = "";
+    document.getElementById('descripcion').value = "";
+    document.getElementById('lote').value = "";
+    document.getElementById('cantidad').value = "";
+    cargarUltimos();
+  }
 
-    cargarAlmacenes();
-  </script>
-</body>
-</html>
+  async function cargarUltimos() {
+    const usuario = document.getElementById('usuario').value;
+    if (!usuario) return;
+    const res = await fetch(`${API_URL}?action=ultimos&usuario=${usuario}`);
+    const data = await res.json();
+    const tbody = document.querySelector('#tabla tbody');
+    tbody.innerHTML = '';
+    data.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${r.codigo}</td><td>${r.lote}</td><td>${r.cantidad}</td>
+        <td><button class="delete" onclick="eliminar(${r.id})">X</button></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function eliminar(id) {
+    await fetch(`${API_URL}?action=eliminar&id=${id}`);
+    alert("Registro eliminado con éxito");
+    cargarUltimos();
+  }
+
+  cargarAlmacenes();
+</script>
