@@ -12,7 +12,7 @@
   </style>
 </head>
 <body>
-  <h2>📦 Registro de Inventario</h2>
+  <h2>📦 Inventario de MP - UNION SRL </h2>
 
   <input id="usuario" placeholder="Usuario" />
   <select id="almacen"></select>
@@ -75,12 +75,7 @@
       validarCampos();
     });
 
-    // Verifica que el código exista en la tabla artículos
-    async function codigoExiste(codigo) {
-      const res = await fetch(`${API_URL}?action=descripcion&codigo=${codigo}`);
-      const data = await res.json();
-      return !!(data && data.descripcion && data.descripcion !== 'No encontrado');
-    }
+   
 
     async function guardar() {
       const codigo = document.getElementById('codigo').value;
@@ -168,4 +163,5 @@
   </script>
 </body>
 </html>
+
 
