@@ -20,7 +20,7 @@
   <input id="descripcion" placeholder="Descripción" disabled />
   <input id="lote" placeholder="Lote" />
   <input id="cantidad" type="number" inputmode="decimal" step="0.01" placeholder="Cantidad" />
-  <button onclick="guardar()">Guardar</button>
+  <button id="btnGuardar" onclick="guardar()" disabled>Guardar</button>
 
   <h3>🕒 Últimos 10 registros</h3>
   <table id="tabla">
@@ -48,23 +48,31 @@
     document.getElementById('usuario').addEventListener('input', () => {
       const usuarioInput = document.getElementById('usuario');
       usuarioInput.value = usuarioInput.value.toUpperCase();
+      validarCampos();
     });
 
     document.getElementById('codigo').addEventListener('input', () => {
       const codigoInput = document.getElementById('codigo');
       codigoInput.value = codigoInput.value.toUpperCase();
+      validarCampos();
     });
 
     document.getElementById('lote').addEventListener('input', () => {
       const loteInput = document.getElementById('lote');
       loteInput.value = loteInput.value.toUpperCase();
+      validarCampos();
     });
+
+    document.getElementById('cantidad').addEventListener('input', validarCampos);
+
+    document.getElementById('descripcion').addEventListener('input', validarCampos);
 
     document.getElementById('codigo').addEventListener('change', async () => {
       const codigo = document.getElementById('codigo').value;
       const res = await fetch(`${API_URL}?action=descripcion&codigo=${codigo}`);
       const data = await res.json();
       document.getElementById('descripcion').value = data.descripcion || 'No encontrado';
+      validarCampos();
     });
 
     // Verifica que el código exista en la tabla artículos
@@ -106,6 +114,7 @@
 
       // Posicionar el cursor en el campo código
       document.getElementById('codigo').focus();
+      validarCampos();
     }
 
     async function cargarUltimos() {
@@ -127,6 +136,33 @@
       await fetch(`${API_URL}?action=eliminar&id=${id}`);
       cargarUltimos();
     }
+
+    function validarCampos() {
+      const usuario = document.getElementById('usuario').value.trim();
+      const codigo = document.getElementById('codigo').value.trim();
+      const descripcion = document.getElementById('descripcion').value.trim();
+      const lote = document.getElementById('lote').value.trim();
+      const cantidad = document.getElementById('cantidad').value.trim();
+
+      const boton = document.getElementById('btnGuardar');
+
+      // Deshabilita el botón si algún campo está vacío o la descripcion dice "No encontrado"
+      if (
+        !usuario ||
+        !codigo ||
+        !descripcion ||
+        !lote ||
+        !cantidad ||
+        descripcion.toLowerCase() === 'no encontrado'
+      ) {
+        boton.disabled = true;
+      } else {
+        boton.disabled = false;
+      }
+    }
+
+    // Llama a validar al cargar la página para asegurar el estado inicial
+    window.addEventListener('DOMContentLoaded', validarCampos);
 
     cargarAlmacenes();
   </script>
